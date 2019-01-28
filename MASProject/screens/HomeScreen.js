@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from 'react-native';
 import {
   Image,
   Platform,
@@ -7,12 +8,20 @@ import {
   Text,
   TouchableOpacity,
   View,
+  FlatList,
+  Alert
 } from 'react-native';
 import { WebBrowser } from 'expo';
 
 import { MonoText } from '../components/StyledText';
 
 export default class HomeScreen extends React.Component {
+
+  constructor(props){
+    super(props);
+    this.state ={ isLoading: true}
+  }
+
   static navigationOptions = {
     header: null,
   };
@@ -51,14 +60,20 @@ export default class HomeScreen extends React.Component {
               <Text style={styles.helpLinkText}>Help, it didn’t automatically reload!</Text>
             </TouchableOpacity>
           </View>
+
+          
         </ScrollView>
-
-        <View style={styles.tabBarInfoContainer}>
-          <Text style={styles.tabBarInfoText}>This is a tab bar. You can edit it in:</Text>
-
-          <View style={[styles.codeHighlightContainer, styles.navigationFilename]}>
-            <MonoText style={styles.codeHighlightText}>navigation/MainTabNavigator.js</MonoText>
-          </View>
+        <Button
+            onPress={this._makeRequest}
+            title="Press me. I'm a button."
+            color="#841584"          
+        />
+        <View style={{flex: 1, paddingTop:20}}>
+          <FlatList
+            data={this.state.dataSource}
+            renderItem={({item}) => <Text>{item.title}, {item.releaseYear}</Text>}
+            keyExtractor={({id}, index) => id}
+          />
         </View>
       </View>
     );
@@ -86,6 +101,30 @@ export default class HomeScreen extends React.Component {
       );
     }
   }
+
+  _makeRequest = () => {
+    fetch('https://facebook.github.io/react-native/movies.json')
+      .then((response) => response.json())
+      .then((responseJson) => {
+        Alert.alert(
+          'Hi!',
+          'You made a request to an API!',
+          [
+            {text: 'Press me to render the response', onPress: () => {
+              console.log(responseJson);
+              this.setState({
+                isLoading: false,
+                dataSource: responseJson.movies,
+              }, function(){
+      
+              });
+              }
+            }
+          ],
+          {cancelable: false},
+        );
+      });
+  };
 
   _handleLearnMorePress = () => {
     WebBrowser.openBrowserAsync('https://docs.expo.io/versions/latest/guides/development-mode');
