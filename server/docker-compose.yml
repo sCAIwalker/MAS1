@@ -4,6 +4,8 @@ services:
     image: "node"
     container_name: api
     working_dir: /app
+    environment:
+      - IN_DOCKER=true
     volumes: 
       - ./api:/app
       - npm-cache:/app/node_modules
@@ -17,11 +19,13 @@ services:
     image: nginx
     container_name: proxy
     volumes:
-      - ./nginx/conf.d/dev:/etc/nginx/conf.d
+      - ./nginx/conf.d/prod:/etc/nginx/conf.d
     ports:
       - "80:80"
       - "443:443"
     restart: unless-stopped
+    depends_on:
+      - api
   db:
     image: mongo
     container_name: db
