@@ -1,6 +1,6 @@
 version: "3"
 services:
-  server: 
+  api: 
     image: "node"
     container_name: api
     working_dir: /app
@@ -11,6 +11,8 @@ services:
     ports:
       - "8888:8888"
     restart: unless-stopped
+    depends_on:
+      - db
   nginx:
     image: nginx
     container_name: proxy
@@ -20,5 +22,8 @@ services:
       - "80:80"
       - "443:443"
     restart: unless-stopped
+  db:
+    image: mongo
+    container_name: db
 volumes:
-    npm-cache:
+  npm-cache:
