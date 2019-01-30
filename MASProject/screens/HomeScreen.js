@@ -1,25 +1,25 @@
 import React from 'react';
 import { Button } from 'react-native';
 import {
-  Image,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
   FlatList,
-  Alert
+  Alert,
+  TextInput,
+  TouchableOpacity
 } from 'react-native';
-import { WebBrowser } from 'expo';
-
-import { MonoText } from '../components/StyledText';
 
 export default class HomeScreen extends React.Component {
 
   constructor(props){
     super(props);
-    this.state ={ isLoading: true}
+    this.state ={ 
+      isLoading: true,
+      name: ''
+    }
   }
 
   static navigationOptions = {
@@ -30,44 +30,37 @@ export default class HomeScreen extends React.Component {
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-          <View style={styles.welcomeContainer}>
-            <Image
-              source={
-                __DEV__
-                  ? require('../assets/images/robot-dev.png')
-                  : require('../assets/images/robot-prod.png')
-              }
-              style={styles.welcomeImage}
+          <View style={styles.container}>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your name."
+              onChangeText={this.handleName}
             />
-          </View>
-
-          <View style={styles.getStartedContainer}>
-            {this._maybeRenderDevelopmentModeWarning()}
-
-            <Text style={styles.getStartedText}>Get started by opening</Text>
-
-            <View style={[styles.codeHighlightContainer, styles.homeScreenFilename]}>
-              <MonoText style={styles.codeHighlightText}>screens/HomeScreen.js</MonoText>
-            </View>
-
-            <Text style={styles.getStartedText}>
-              Change this text and your app will automatically reload.
-            </Text>
-          </View>
-
-          <View style={styles.helpContainer}>
-            <TouchableOpacity onPress={this._handleHelpPress} style={styles.helpLink}>
-              <Text style={styles.helpLinkText}>Help, it didn’t automatically reload!</Text>
+            <TouchableOpacity
+               style = {styles.submitButton}
+               onPress = {this.submit}>
+               <Text style = {styles.submitButtonText}>Submit</Text>
             </TouchableOpacity>
           </View>
-
           
         </ScrollView>
         <Button
-            onPress={this._makeRequest}
-            title="Press me. I'm a button."
+            onPress={this.makeRequest}
+            title="Press me to make a 3rd party request"
             color="#841584"          
-        />
+          />
+          <Button
+            onPress={this.queryDb}
+            title="Press me to query our database"
+            color="#841584"          
+          />
+        <View style={{flex: 1, paddingTop:20}}>
+          <FlatList
+            data={this.state.names}
+            renderItem={({item}) => <Text>{item}</Text>}
+            key={(index) => index}
+          />
+        </View>
         <View style={{flex: 1, paddingTop:20}}>
           <FlatList
             data={this.state.dataSource}
@@ -79,39 +72,63 @@ export default class HomeScreen extends React.Component {
     );
   }
 
-  _maybeRenderDevelopmentModeWarning() {
-    if (__DEV__) {
-      const learnMoreButton = (
-        <Text onPress={this._handleLearnMorePress} style={styles.helpLinkText}>
-          Learn more
-        </Text>
-      );
-
-      return (
-        <Text style={styles.developmentModeText}>
-          Development mode is enabled, your app will be slower but you can use useful development
-          tools. {learnMoreButton}
-        </Text>
-      );
-    } else {
-      return (
-        <Text style={styles.developmentModeText}>
-          You are not in development mode, your app will run at full speed.
-        </Text>
-      );
-    }
+  submit = () => {
+    fetch('http://3.93.95.228/test', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        Name : this.state.name
+      })
+    }).then((response) => console.log(response))
+    .then((responseJson) => {
+      Alert.alert(
+        'Hi!',
+        'You submitted your name!')
+      console.log(responseJson);
+    });
   }
 
-  _makeRequest = () => {
+  handleName = (text) => {
+    this.setState({ name: text })
+  }
+
+  queryDb = () => {
+    fetch('http://3.93.95.228/users')
+      .then((response) => response.json())
+      .then((responseJson) => {
+        console.log(responseJson);
+        Alert.alert(
+          'Hi!',
+          'You queried our db!',
+          [
+            {text: 'Press me to render the response', onPress: () => {
+              this.setState({
+                isLoading: false,
+                names: responseJson,
+              }, function(){
+      
+              });
+              }
+            }
+          ],
+          {cancelable: false},
+        );
+      });
+  };
+
+  makeRequest = () => {
     fetch('https://facebook.github.io/react-native/movies.json')
       .then((response) => response.json())
       .then((responseJson) => {
+        console.log(responseJson)
         Alert.alert(
           'Hi!',
-          'You made a request to an API!',
+          'You made a 3rd party request!',
           [
             {text: 'Press me to render the response', onPress: () => {
-              console.log(responseJson);
               this.setState({
                 isLoading: false,
                 dataSource: responseJson.movies,
@@ -124,16 +141,6 @@ export default class HomeScreen extends React.Component {
           {cancelable: false},
         );
       });
-  };
-
-  _handleLearnMorePress = () => {
-    WebBrowser.openBrowserAsync('https://docs.expo.io/versions/latest/guides/development-mode');
-  };
-
-  _handleHelpPress = () => {
-    WebBrowser.openBrowserAsync(
-      'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
-    );
   };
 }
 
@@ -224,4 +231,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#2e78b7',
   },
+  input: {
+    margin: 15,
+    height: 40,
+    borderColor: '#7a42f4',
+    borderWidth: 1
+  },
+  submitButton: {
+    backgroundColor: '#7a42f4',
+    padding: 10,
+    margin: 15,
+    height: 40,
+  },
+  submitButtonText:{
+    color: 'white'
+  }
 });
