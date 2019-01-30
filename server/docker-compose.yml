@@ -1,0 +1,33 @@
+version: "3"
+services:
+  api: 
+    image: "node"
+    container_name: api
+    working_dir: /app
+    environment:
+      - IN_DOCKER=true
+    volumes: 
+      - ./api:/app
+      - npm-cache:/app/node_modules
+    command: bash -c "npm install && npm start"
+    ports:
+      - "8888:8888"
+    restart: unless-stopped
+    depends_on:
+      - db
+  nginx:
+    image: nginx
+    container_name: proxy
+    volumes:
+      - ./nginx/conf.d/prod:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    depends_on:
+      - api
+  db:
+    image: mongo
+    container_name: db
+volumes:
+  npm-cache:
