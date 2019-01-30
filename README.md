@@ -8,3 +8,4 @@ Instructions to run
 4. download expo on mobile device
 5. run 'npm start'
 6. in the expo web portal, click "send linke with email/SMS..." This will send a link to your phone that will open the application in expo
+7. open the link on your device
