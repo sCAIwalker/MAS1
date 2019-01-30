@@ -26,6 +26,7 @@ app.get('/', (req, res) => res.send('Hello World!'))
 
 app.get('/users', (req, res) => {
   User.find({}, function(err, users) {
+    res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(users.map(_ => _.Name)))
   });
 });
